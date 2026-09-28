@@ -153,7 +153,7 @@ export function SearchOverlay({ open, onClose, categories }: { open: boolean; on
                             </div>
                             <div className="min-w-0">
                               <p className="truncate text-[15px] font-medium">{result.name}</p>
-                              <p className="tabular mt-1 text-[14px] text-ink-2">
+                              <p className="price-only tabular mt-1 text-[14px] text-ink-2">
                                 {result.hasVariants && 'desde '}
                                 {formatMoney(result.priceCents, currency)}
                               </p>

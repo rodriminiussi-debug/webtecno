@@ -80,7 +80,7 @@ function PinnedStory({ title, subtitle, eyebrow, body, points, ctaLabel, href, p
           </div>
 
           <motion.div style={{ opacity: ctaOpacity }} className="absolute bottom-40 right-[var(--gutter)] z-10 flex items-center gap-4">
-            {priceCents !== null && <span className="tabular text-[17px] font-medium">{formatMoney(priceCents, currency)}</span>}
+            {priceCents !== null && <span className="price-only tabular text-[17px] font-medium">{formatMoney(priceCents, currency)}</span>}
             <Link href={href} className={buttonClass({ size: 'lg' })}>
               {ctaLabel} <ArrowNudge />
             </Link>
@@ -148,7 +148,7 @@ function StaticStory({ title, subtitle, eyebrow, body, points, ctaLabel, href, p
           <Link href={href} className={buttonClass({ size: 'lg' })}>
             {ctaLabel} <ArrowNudge />
           </Link>
-          {priceCents !== null && <span className="tabular text-[15px]">{formatMoney(priceCents, currency)}</span>}
+          {priceCents !== null && <span className="price-only tabular text-[15px]">{formatMoney(priceCents, currency)}</span>}
         </div>
       </div>
     </section>

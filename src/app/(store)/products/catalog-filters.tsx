@@ -16,6 +16,7 @@ type Props = {
   filters: Filters
   priceBounds: { min: number; max: number }
   resultCount: number
+  showPrice: boolean
 }
 
 function toQuery(filters: Filters) {
@@ -30,7 +31,7 @@ function toQuery(filters: Filters) {
   return query ? `?${query}` : ''
 }
 
-export function CatalogFilters({ categories, filters, priceBounds, resultCount }: Props) {
+export function CatalogFilters({ categories, filters, priceBounds, resultCount, showPrice }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const [pending, startTransition] = useTransition()
@@ -44,7 +45,7 @@ export function CatalogFilters({ categories, filters, priceBounds, resultCount }
 
   const activeCount = [filters.category, filters.min !== null || filters.max !== null, filters.inStock].filter(Boolean).length
 
-  const panel = <FilterPanel categories={categories} filters={filters} priceBounds={priceBounds} apply={apply} />
+  const panel = <FilterPanel categories={categories} filters={filters} priceBounds={priceBounds} apply={apply} showPrice={showPrice} />
 
   return (
     <div className={cn('transition-opacity', pending && 'opacity-60')}>
@@ -54,13 +55,13 @@ export function CatalogFilters({ categories, filters, priceBounds, resultCount }
         <button type="button" onClick={() => setSheetOpen(true)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>
           <SettingsIcon size={16} /> Filtros {activeCount > 0 && <span className="tabular">({activeCount})</span>}
         </button>
-        <SortSelect value={filters.sort} onChange={(sort) => apply({ sort })} />
+        <SortSelect value={filters.sort} onChange={(sort) => apply({ sort })} showPrice={showPrice} />
       </div>
 
       <div className="mt-8 hidden lg:block">
         <div className="mb-8">
           <p className="label-mono mb-3 text-muted">Ordenar</p>
-          <SortSelect value={filters.sort} onChange={(sort) => apply({ sort })} />
+          <SortSelect value={filters.sort} onChange={(sort) => apply({ sort })} showPrice={showPrice} />
         </div>
         {panel}
       </div>
@@ -135,7 +136,7 @@ function SearchBox({ value, onSubmit }: { value: string; onSubmit: (q: string) =
   )
 }
 
-function SortSelect({ value, onChange }: { value: Filters['sort']; onChange: (value: Filters['sort']) => void }) {
+function SortSelect({ value, onChange, showPrice }: { value: Filters['sort']; onChange: (value: Filters['sort']) => void; showPrice: boolean }) {
   return (
     <div className="relative flex-1">
       <label htmlFor="catalog-sort" className="sr-only">
@@ -147,7 +148,7 @@ function SortSelect({ value, onChange }: { value: Filters['sort']; onChange: (va
         onChange={(event) => onChange(event.target.value as Filters['sort'])}
         className="h-9 w-full appearance-none rounded-full border border-line-strong bg-transparent pl-4 pr-9 text-[13px] focus:border-ink focus:outline-none lg:h-11 lg:text-[14px]"
       >
-        {SORT_OPTIONS.map((option) => (
+        {SORT_OPTIONS.filter((option) => showPrice || !option.value.startsWith('price')).map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
@@ -165,11 +166,13 @@ function FilterPanel({
   filters,
   priceBounds,
   apply,
+  showPrice,
 }: {
   categories: { slug: string; name: string }[]
   filters: Filters
   priceBounds: { min: number; max: number }
   apply: (patch: Partial<Filters>) => void
+  showPrice: boolean
 }) {
   const urlMin = filters.min?.toString() ?? ''
   const urlMax = filters.max?.toString() ?? ''
@@ -214,6 +217,7 @@ function FilterPanel({
         </ul>
       </fieldset>
 
+      {showPrice && (
       <fieldset>
         <legend className="label-mono mb-3 text-muted">Precio (ARS)</legend>
         <form
@@ -253,6 +257,7 @@ function FilterPanel({
           </button>
         </form>
       </fieldset>
+      )}
 
       <div className="flex items-center justify-between gap-4">
         <label htmlFor="in-stock" className="text-[14px]">

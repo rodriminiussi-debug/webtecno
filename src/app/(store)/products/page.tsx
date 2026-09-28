@@ -24,7 +24,12 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
 
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
   const [params, products, categories, settings] = await Promise.all([searchParams, getPublishedProducts(), getVisibleCategories(), getSettings()])
-  const filters = parseCatalogFilters(params)
+  const consultative = settings.sales.mode === 'whatsapp'
+  const parsed = parseCatalogFilters(params)
+  // Without public prices, price filters and price sorting make no sense
+  const filters = consultative
+    ? { ...parsed, min: null, max: null, sort: parsed.sort.startsWith('price') ? ('featured' as const) : parsed.sort }
+    : parsed
   const categoryIdBySlug = new Map(categories.map((category) => [category.slug, category.id]))
   const categoryName = new Map(categories.map((category) => [category.id, category.name]))
   const results = filterProducts(products, filters, categoryIdBySlug)
@@ -59,6 +64,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             filters={filters}
             priceBounds={priceBounds}
             resultCount={results.length}
+            showPrice={!consultative}
           />
         </aside>
 

@@ -119,7 +119,8 @@ export class LocalRepository implements StoreRepository {
   }
 
   getSettings() {
-    return this.read((db) => db.settings)
+    // Merge over defaults so settings added in newer versions always exist
+    return this.read((db) => ({ ...seedSettings, ...db.settings }))
   }
 
   saveSettings(settings: SiteSettings) {

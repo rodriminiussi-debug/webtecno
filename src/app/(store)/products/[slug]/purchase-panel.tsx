@@ -11,6 +11,8 @@ import { useCart } from '@/lib/cart-store'
 import { cn } from '@/lib/cn'
 import type { ProductVariant } from '@/lib/data/types'
 import { formatMoney } from '@/lib/format'
+import { useConsultative } from '@/components/store/store-mode'
+import { WhatsAppPriceButton } from '@/components/store/whatsapp-button'
 
 type PanelProduct = {
   id: string
@@ -36,6 +38,7 @@ export function PurchasePanel({ product, currency, categoryName }: { product: Pa
   const [justAdded, setJustAdded] = useState(false)
   const [showBar, setShowBar] = useState(false)
   const buttonRef = useRef<HTMLDivElement>(null)
+  const consultative = useConsultative()
 
   const variant = product.variants.find((item) => item.id === variantId) ?? null
   const stock = variant ? variant.stock : product.stock
@@ -86,7 +89,11 @@ export function PurchasePanel({ product, currency, categoryName }: { product: Pa
       <p className="mt-4 max-w-md text-[16px] leading-relaxed text-ink-2">{product.shortDescription}</p>
 
       <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
-        <Price cents={price} compareAtCents={compareAt} currency={currency} size="lg" />
+        {consultative ? (
+          <p className="text-[17px] text-ink-2">Consultá precio y formas de pago por WhatsApp.</p>
+        ) : (
+          <Price cents={price} compareAtCents={compareAt} currency={currency} size="lg" />
+        )}
         <Availability stock={stock} />
       </div>
 
@@ -118,7 +125,7 @@ export function PurchasePanel({ product, currency, categoryName }: { product: Pa
                 >
                   {item.swatch && <span className="size-4 rounded-full ring-1 ring-line-strong" style={{ background: item.swatch }} aria-hidden="true" />}
                   {item.name}
-                  {item.priceCents !== null && item.priceCents !== product.priceCents && (
+                  {!consultative && item.priceCents !== null && item.priceCents !== product.priceCents && (
                     <span className="tabular text-muted">{formatMoney(item.priceCents, currency)}</span>
                   )}
                   {unavailable && <span className="label-mono text-muted">· Agotado</span>}
@@ -130,6 +137,13 @@ export function PurchasePanel({ product, currency, categoryName }: { product: Pa
       )}
 
       <div ref={buttonRef} className="mt-8 flex flex-col gap-3">
+        {consultative ? (
+          <>
+            <WhatsAppPriceButton product={product} option={variant?.name ?? null} className="w-full" />
+            <p className="text-[13px] text-muted">Te respondemos en minutos, en horario comercial. El mensaje ya incluye el producto{variant ? ' y la opción elegida' : ''}.</p>
+          </>
+        ) : (
+        <>
         <div className="flex gap-3">
           {!soldOut && <QuantityStepper value={quantity} max={maxQuantity} onChange={setQuantity} label="Cantidad" />}
           <Button size="lg" className="flex-1" onClick={addToCart} disabled={soldOut}>
@@ -150,10 +164,12 @@ export function PurchasePanel({ product, currency, categoryName }: { product: Pa
             Este producto está agotado. Escribinos y te avisamos cuando vuelva a ingresar.
           </p>
         )}
+        </>
+        )}
       </div>
 
       <AnimatePresence>
-        {showBar && !soldOut && (
+        {showBar && (consultative || !soldOut) && (
           <motion.div
             className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 px-[var(--gutter)] pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md lg:hidden"
             initial={{ y: '100%' }}
@@ -165,11 +181,15 @@ export function PurchasePanel({ product, currency, categoryName }: { product: Pa
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[14px] font-medium">{product.name}</p>
                 <p className="tabular text-[13px] text-ink-2">
-                  {formatMoney(price, currency)}
+                  {consultative ? 'Precio por WhatsApp' : formatMoney(price, currency)}
                   {variant && ` · ${variant.name}`}
                 </p>
               </div>
-              <Button onClick={addToCart}>{justAdded ? 'Agregado' : 'Agregar'}</Button>
+              {consultative ? (
+                <WhatsAppPriceButton product={product} option={variant?.name ?? null} label="Consultar" size="md" />
+              ) : (
+                <Button onClick={addToCart}>{justAdded ? 'Agregado' : 'Agregar'}</Button>
+              )}
             </div>
           </motion.div>
         )}

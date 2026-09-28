@@ -1,11 +1,9 @@
 import Link from 'next/link'
 import type { Product } from '@/lib/data/types'
-import { Availability } from '@/components/availability'
-import { Price } from '@/components/price'
 import { ProductImage } from '@/components/product-image'
 import { cn } from '@/lib/cn'
 import { discountPercent, startingPrice } from '@/lib/pricing'
-import { AddToCartQuick } from './add-to-cart-quick'
+import { CardAction, CardPrice } from './card-commerce'
 
 export function ProductCard({
   product,
@@ -43,7 +41,7 @@ export function ProductCard({
           )}
         </div>
         <div className="absolute left-4 top-4 flex gap-1.5">
-          {discount > 0 && <span className="label-mono rounded-full bg-accent px-2.5 py-1.5 text-white">−{discount}%</span>}
+          {discount > 0 && <span className="price-only label-mono rounded-full bg-accent px-2.5 py-1.5 text-white">−{discount}%</span>}
           {soldOut && <span className="label-mono rounded-full bg-paper px-2.5 py-1.5 text-ink-2">Sin stock</span>}
         </div>
         {categoryName && <span className="label-mono absolute right-4 top-4 hidden text-muted md:block">{categoryName}</span>}
@@ -60,7 +58,7 @@ export function ProductCard({
           <p className={cn('mt-1 line-clamp-2 text-muted', size === 'lg' ? 'max-w-md text-[15px]' : 'text-[13px] leading-snug')}>{product.shortDescription}</p>
         </div>
         <div className="relative z-10">
-          <AddToCartQuick
+          <CardAction
             product={{
               id: product.id,
               slug: product.slug,
@@ -73,10 +71,7 @@ export function ProductCard({
           />
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <Price cents={price} compareAtCents={compareAt} currency={currency} from={product.variants.length > 1} size="sm" />
-        <Availability stock={product.stock} />
-      </div>
+      <CardPrice cents={price} compareAtCents={compareAt} currency={currency} from={product.variants.length > 1} stock={product.stock} />
     </article>
   )
 }

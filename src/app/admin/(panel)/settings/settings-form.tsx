@@ -12,8 +12,10 @@ import { Switch } from '@/components/ui/field'
 import { FONT_KEYS, type PaymentProviderId, type SiteSettings } from '@/lib/data/types'
 import { FONT_OPTIONS } from '@/lib/font-options'
 import { cn } from '@/lib/cn'
+import { fillTemplate, whatsappUrl } from '@/lib/whatsapp'
 
 const TABS = [
+  { id: 'sales', label: 'Ventas' },
   { id: 'brand', label: 'Marca' },
   { id: 'look', label: 'Apariencia' },
   { id: 'texts', label: 'Textos y SEO' },
@@ -37,7 +39,7 @@ const PROVIDER_ENV: Partial<Record<PaymentProviderId, string>> = { mercadopago: 
 export function SettingsForm({ settings: initial, configured, storage }: { settings: SiteSettings; configured: Record<PaymentProviderId, boolean>; storage: 'local' | 'supabase' }) {
   const router = useRouter()
   const [settings, setSettings] = useState(initial)
-  const [tab, setTab] = useState<Tab>('brand')
+  const [tab, setTab] = useState<Tab>('sales')
   const [dirty, setDirty] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -96,6 +98,49 @@ export function SettingsForm({ settings: initial, configured, storage }: { setti
         </nav>
 
         <div className="min-w-0">
+          {tab === 'sales' && (
+            <Panel title="Modo de venta" description="Elegí si la tienda muestra precios y vende con carrito, o si cada consulta se cierra por WhatsApp.">
+              <div className="grid gap-5">
+                <SegmentedChoice
+                  value={settings.sales.mode}
+                  onChange={(mode) => set('sales', { ...settings.sales, mode })}
+                  options={[
+                    { value: 'whatsapp', title: 'Consultar por WhatsApp', body: 'Oculta precios, carrito y checkout. Cada producto abre un chat con el mensaje escrito.' },
+                    { value: 'cart', title: 'Tienda con carrito', body: 'Muestra precios y permite comprar online con los medios de pago configurados.' },
+                  ]}
+                />
+                <TextInput
+                  label="Número de WhatsApp de ventas"
+                  value={settings.sales.whatsappNumber}
+                  inputMode="numeric"
+                  onChange={(event) => set('sales', { ...settings.sales, whatsappNumber: event.target.value.replace(/\D/g, '') })}
+                  hint="Con código de país y 9 para celulares de Argentina: 549 + característica + número (ej. 5493412623603)."
+                />
+                <TextArea
+                  label="Mensaje que se envía"
+                  value={settings.sales.whatsappTemplate}
+                  rows={3}
+                  onChange={(event) => set('sales', { ...settings.sales, whatsappTemplate: event.target.value })}
+                  hint="Variables: {tienda}, {producto}, {opcion} (color o capacidad elegida) y {link}."
+                />
+                <div className="rounded-[var(--radius-sm)] border border-line bg-tile p-4">
+                  <p className="label-mono mb-2 text-muted">Vista previa</p>
+                  <p className="text-[14px]">
+                    {fillTemplate(settings.sales.whatsappTemplate, { store: settings.storeName, product: 'AirPods 5', option: 'Blanco', link: 'https://tu-tienda.com/products/airpods-5' })}
+                  </p>
+                  <a
+                    href={whatsappUrl(settings.sales.whatsappNumber, fillTemplate(settings.sales.whatsappTemplate, { store: settings.storeName, product: 'AirPods 5', option: null, link: '' }))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex text-[13px] underline underline-offset-2"
+                  >
+                    Probar el enlace
+                  </a>
+                </div>
+              </div>
+            </Panel>
+          )}
+
           {tab === 'brand' && (
             <Panel title="Identidad">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -270,5 +315,25 @@ export function SettingsForm({ settings: initial, configured, storage }: { setti
         </div>
       </div>
     </form>
+  )
+}
+
+function SegmentedChoice<T extends string>({ value, onChange, options }: { value: T; onChange: (value: T) => void; options: { value: T; title: string; body: string }[] }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Modo de venta">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          onClick={() => onChange(option.value)}
+          className={cn('rounded-[var(--radius-sm)] border p-4 text-left', value === option.value ? 'border-ink bg-surface' : 'border-line hover:border-line-strong')}
+        >
+          <span className="block text-[14px] font-medium">{option.title}</span>
+          <span className="mt-1 block text-[12px] text-muted">{option.body}</span>
+        </button>
+      ))}
+    </div>
   )
 }

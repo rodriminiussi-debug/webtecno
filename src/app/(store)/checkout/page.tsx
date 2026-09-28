@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { availablePaymentMethods } from '@/lib/orders'
 import { getSettings } from '@/lib/store'
 import { CheckoutForm } from './checkout-form'
@@ -8,6 +9,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function CheckoutPage() {
   const settings = await getSettings()
+  // WhatsApp sales mode has no cart: purchases are closed in the chat
+  if (settings.sales.mode === 'whatsapp') redirect('/products')
   const shipping = settings.shippingMethods.filter((method) => method.enabled)
   const payments = availablePaymentMethods(settings).map(({ id, name, description, provider }) => ({ id, name, description, provider }))
   return (

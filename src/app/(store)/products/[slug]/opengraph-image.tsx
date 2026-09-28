@@ -23,7 +23,7 @@ export default async function ProductOpenGraphImage({ params }: { params: Promis
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ fontSize: 110, lineHeight: 0.9, letterSpacing: -5, fontWeight: 600 }}>{product?.name ?? settings.storeName}</div>
-          {product && <div style={{ fontSize: 40, color: '#55555a' }}>{formatMoney(startingPrice(product), settings.currency)}</div>}
+          {product && <div style={{ fontSize: 40, color: '#55555a' }}>{settings.sales.mode === 'whatsapp' ? 'Consultá el precio por WhatsApp' : formatMoney(startingPrice(product), settings.currency)}</div>}
         </div>
       </div>
     ),

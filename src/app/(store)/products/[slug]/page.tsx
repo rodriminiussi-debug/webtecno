@@ -51,7 +51,8 @@ export default async function ProductPage({ params }: { params: Params }) {
     brand: { '@type': 'Brand', name: product.brand || settings.storeName },
     image: product.images.map((image) => new URL(image.url, siteUrl()).toString()),
     category: category?.name,
-    offers: (product.variants.length ? product.variants : [null]).map((variant) => ({
+    // WhatsApp sales mode publishes no prices, so no Offer markup either
+    offers: settings.sales.mode === 'whatsapp' ? undefined : (product.variants.length ? product.variants : [null]).map((variant) => ({
       '@type': 'Offer',
       url: `${siteUrl()}/products/${product.slug}`,
       priceCurrency: settings.currency,

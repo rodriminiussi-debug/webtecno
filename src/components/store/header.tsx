@@ -8,6 +8,7 @@ import { BagIcon, MenuIcon, SearchIcon, UserIcon } from '@/components/icons'
 import { cartCount, useCart } from '@/lib/cart-store'
 import { cn } from '@/lib/cn'
 import { useHydrated } from '@/hooks/use-hydrated'
+import { useConsultative } from './store-mode'
 import { MobileMenu } from './mobile-menu'
 import { SearchOverlay } from './search-overlay'
 
@@ -176,6 +177,12 @@ function HeaderIconButton({
 }
 
 function CartButton() {
+  // In WhatsApp mode there is no cart: the chat replaces checkout
+  if (useConsultative()) return null
+  return <CartButtonInner />
+}
+
+function CartButtonInner() {
   const lines = useCart((state) => state.lines)
   const pulse = useCart((state) => state.pulse)
   const open = useCart((state) => state.open)

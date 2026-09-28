@@ -7,6 +7,7 @@ import type {
   ProductVariant,
   SiteSettings,
 } from './types'
+import { DEFAULT_WHATSAPP_TEMPLATE } from '../whatsapp'
 
 // Demo catalogue. Images are original SVG renders shipped in /public/products,
 // so the store never depends on third-party copyrighted photography.
@@ -406,6 +407,11 @@ export const seedProducts: Product[] = productInputs.map(buildProduct)
 
 export const seedSettings: SiteSettings = {
   storeName: 'MONO',
+  sales: {
+    mode: 'whatsapp',
+    whatsappNumber: '5493412623603',
+    whatsappTemplate: DEFAULT_WHATSAPP_TEMPLATE,
+  },
   logoUrl: null,
   faviconUrl: null,
   colors: {
@@ -433,7 +439,7 @@ export const seedSettings: SiteSettings = {
   contact: {
     email: 'hola@mono.store',
     phone: '+54 11 4000 0000',
-    whatsapp: '5491140000000',
+    whatsapp: '5493412623603',
     address: 'Av. Corrientes 1234, CABA',
     hours: 'Lunes a viernes de 9 a 18 h',
   },

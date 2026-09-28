@@ -230,3 +230,8 @@ textarea {
   animation: mono-shimmer 1.6s linear infinite;
   border-radius: var(--radius-sm);
 }
+
+/* WhatsApp sales mode: anything tagged as price-only disappears from server-rendered markup */
+[data-sales-mode='whatsapp'] .price-only {
+  display: none !important;
+}

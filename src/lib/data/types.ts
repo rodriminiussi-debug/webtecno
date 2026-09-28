@@ -170,8 +170,16 @@ export type PaymentMethod = {
   enabled: boolean
 }
 
+export type SalesMode = 'whatsapp' | 'cart'
+
 export type SiteSettings = {
   storeName: string
+  sales: {
+    // 'whatsapp': prices hidden, every product CTA opens a pre-written WhatsApp chat
+    mode: SalesMode
+    whatsappNumber: string
+    whatsappTemplate: string
+  }
   logoUrl: string | null
   faviconUrl: string | null
   colors: {

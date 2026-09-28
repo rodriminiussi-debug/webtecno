@@ -12,6 +12,8 @@ import type { HeroConfig } from '@/lib/data/types'
 import { formatMoney } from '@/lib/format'
 import { discountPercent } from '@/lib/pricing'
 import { TIMELINE, segment, window01 } from './choreography'
+import { useConsultative } from '@/components/store/store-mode'
+import { WhatsAppPriceButton } from '@/components/store/whatsapp-button'
 import { HeroSequence } from './hero-sequence'
 
 export type HeroProduct = {
@@ -43,6 +45,7 @@ const CALLOUT_SLOTS = [
 export function HeroSection({ config, product, currency, darkBackground }: Props) {
   const track = useRef<HTMLElement>(null)
   const reducedMotion = usePrefersReducedMotion()
+  const consultative = useConsultative()
   const frames = config.frames.filter(Boolean)
   // The scroll-driven story needs motion and at least two moments to tell it
   const storytelling = config.animation === 'sequence' && frames.length >= 2 && !reducedMotion
@@ -137,7 +140,7 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
                   {config.subtitle}
                 </p>
               )}
-              {config.showPrice && product && <HeroPrice product={product} currency={currency} dark={darkBackground} />}
+              {config.showPrice && product && !consultative && <HeroPrice product={product} currency={currency} dark={darkBackground} />}
               <div className={cn('mt-8 flex flex-wrap gap-3', config.productPosition === 'left' && 'md:justify-end')}>
                 <BuyButton product={product} label={config.ctaLabel} dark={darkBackground} />
                 {config.secondaryLabel && (
@@ -241,7 +244,11 @@ function BuyButton({
   currency?: string
 }) {
   const add = useCart((state) => state.add)
+  const consultative = useConsultative()
   const className = buttonClass({ variant: dark ? 'inverse' : 'primary', size: 'lg' })
+  if (consultative && product) {
+    return <WhatsAppPriceButton product={product} label="Consultar precio" variant={dark ? 'inverse' : 'primary'} />
+  }
   const content = (
     <>
       {label}

@@ -22,6 +22,11 @@ const assetUrl = z
 
 const schema = z.object({
   storeName: text(40).min(1, 'La tienda necesita un nombre.'),
+  sales: z.object({
+    mode: z.enum(['whatsapp', 'cart']),
+    whatsappNumber: z.string().trim().regex(/^\d{10,15}$/, 'WhatsApp de ventas: sólo números con código de país (ej. 5493412623603).'),
+    whatsappTemplate: text(400).min(10, 'Escribí el mensaje que se envía por WhatsApp.'),
+  }),
   logoUrl: assetUrl,
   faviconUrl: assetUrl,
   colors: z.object({ accent: hex, ink: hex, paper: hex, surface: hex }),
