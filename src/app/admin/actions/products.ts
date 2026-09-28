@@ -45,7 +45,7 @@ const productSchema = z.object({
   features: z.array(z.object({ title: z.string().trim().min(1).max(80), body: z.string().trim().max(300) })).max(12),
   isFeatured: z.boolean(),
   status: z.enum(['published', 'draft']),
-  animation: z.enum(['none', 'float', 'airpods-3d']),
+  animation: z.enum(['none', 'float']),
   seoTitle: z.string().trim().max(70),
   seoDescription: z.string().trim().max(170),
 })

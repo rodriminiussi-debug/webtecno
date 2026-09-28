@@ -2,7 +2,7 @@
 // to avoid floating point drift when summing totals.
 
 export type ProductStatus = 'published' | 'draft'
-export type ProductAnimation = 'none' | 'float' | 'airpods-3d'
+export type ProductAnimation = 'none' | 'float'
 
 export type ProductImage = {
   id: string
@@ -219,7 +219,7 @@ export type SiteSettings = {
 export const SECTION_TYPES = ['hero', 'featured_products', 'categories', 'story', 'benefits', 'newsletter'] as const
 export type SectionType = (typeof SECTION_TYPES)[number]
 
-export type HeroAnimation = 'airpods-3d' | 'parallax' | 'none'
+export type HeroAnimation = 'sequence' | 'parallax' | 'none'
 export type HeroPosition = 'left' | 'center' | 'right'
 
 export type HeroConfig = {
@@ -234,6 +234,8 @@ export type HeroConfig = {
   background: string
   productPosition: HeroPosition
   animation: HeroAnimation
+  // Moments of the scroll story, in order (e.g. closed → open → lifting → close-up)
+  frames: string[]
   callouts: string[]
   showPrice: boolean
 }

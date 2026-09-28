@@ -279,10 +279,9 @@ export function ProductEditor({ product, categories }: { product: Product | null
                   </option>
                 ))}
               </SelectInput>
-              <SelectInput label="Animación en su página" value={draft.animation} onChange={(event) => update('animation', event.target.value as Draft['animation'])} hint="“Visor 3D” agrega un modelo interactivo de auriculares.">
+              <SelectInput label="Animación en su página" value={draft.animation} onChange={(event) => update('animation', event.target.value as Draft['animation'])}>
                 <option value="none">Ninguna</option>
                 <option value="float">Flotación suave de la imagen</option>
-                <option value="airpods-3d">Visor 3D (auriculares)</option>
               </SelectInput>
             </div>
           </Panel>

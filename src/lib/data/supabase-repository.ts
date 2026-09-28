@@ -26,6 +26,8 @@ import {
   seedSections,
   seedSettings,
 } from './seed'
+import { normalizeHero } from './normalize'
+import type { HeroConfig } from './types'
 
 // Row shapes mirror supabase/migrations/0001_init.sql.
 // Replace with `supabase gen types typescript` output once the project is linked.
@@ -174,7 +176,7 @@ function toProduct(row: ProductRow): Product {
     features: row.features ?? [],
     isFeatured: row.is_featured,
     status: row.status,
-    animation: row.animation,
+    animation: (row.animation as string) === 'airpods-3d' ? 'float' : row.animation,
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
     createdAt: row.created_at,
@@ -470,7 +472,7 @@ export class SupabaseRepository implements StoreRepository {
           config: row.config,
         }) as AnyHomepageSection,
     )
-    return { sections, settings: { hero: { ...seedHomepageSettings.hero, ...(settingsResult.data.hero as object) } } as HomepageSettings }
+    return { sections, settings: { hero: normalizeHero(settingsResult.data.hero as Partial<HeroConfig>) } }
   }
 
   async saveHomepage(sections: AnyHomepageSection[], settings: HomepageSettings) {

@@ -17,26 +17,3 @@ export function useMediaQuery(query: string, serverValue = false) {
 export function usePrefersReducedMotion() {
   return useMediaQuery('(prefers-reduced-motion: reduce)')
 }
-
-let webglSupport: boolean | null = null
-
-function detectWebGL() {
-  if (webglSupport !== null) return webglSupport
-  try {
-    const canvas = document.createElement('canvas')
-    webglSupport = Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
-  } catch (error) {
-    console.warn('detectWebGL failed', { error })
-    webglSupport = false
-  }
-  return webglSupport
-}
-
-/** null during SSR/hydration, then true/false. */
-export function useWebGLSupport(): boolean | null {
-  return useSyncExternalStore(
-    () => () => {},
-    () => detectWebGL(),
-    () => null,
-  )
-}

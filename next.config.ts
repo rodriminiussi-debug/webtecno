@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: 'https', hostname: '*.supabase.co' }],
   },
   experimental: {
-    optimizePackageImports: ['motion', '@react-three/drei'],
+    optimizePackageImports: ['motion'],
   },
   async headers() {
     return [

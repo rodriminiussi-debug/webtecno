@@ -8,7 +8,6 @@ import { availabilityOf, shippingCost, startingPrice } from '@/lib/pricing'
 import { formatMoney } from '@/lib/format'
 import { ProductGallery } from './product-gallery'
 import { PurchasePanel } from './purchase-panel'
-import { ProductViewer } from './product-viewer'
 
 type Params = Promise<{ slug: string }>
 
@@ -139,8 +138,6 @@ export default async function ProductPage({ params }: { params: Params }) {
           </div>
         </div>
       </div>
-
-      {product.animation === 'airpods-3d' && <ProductViewer name={product.name} />}
 
       <section className="border-t border-line py-20 md:py-28" aria-labelledby="about-product">
         <div className="container-mono grid gap-10 md:grid-cols-12">

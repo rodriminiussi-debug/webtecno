@@ -26,6 +26,7 @@ import {
   seedSettings,
 } from './seed'
 import { getDataDir } from '../server/data-dir'
+import { normalizeHero, normalizeProduct } from './normalize'
 
 type Database = {
   version: 1
@@ -154,16 +155,23 @@ export class LocalRepository implements StoreRepository {
     return this.read((db) =>
       db.products
         .filter((product) => status === 'all' || product.status === status)
+        .map(normalizeProduct)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     )
   }
 
   getProductBySlug(slug: string) {
-    return this.read((db) => db.products.find((product) => product.slug === slug) ?? null)
+    return this.read((db) => {
+      const product = db.products.find((item) => item.slug === slug)
+      return product ? normalizeProduct(product) : null
+    })
   }
 
   getProductById(id: string) {
-    return this.read((db) => db.products.find((product) => product.id === id) ?? null)
+    return this.read((db) => {
+      const product = db.products.find((item) => item.id === id)
+      return product ? normalizeProduct(product) : null
+    })
   }
 
   saveProduct(product: Product) {
@@ -184,7 +192,7 @@ export class LocalRepository implements StoreRepository {
   getHomepage() {
     return this.read((db) => ({
       sections: [...db.sections].sort((a, b) => a.sortOrder - b.sortOrder),
-      settings: db.homepage,
+      settings: { hero: normalizeHero(db.homepage.hero) },
     }))
   }
 

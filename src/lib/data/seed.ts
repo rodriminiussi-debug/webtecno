@@ -14,13 +14,13 @@ import type {
 const NOW = '2026-09-01T12:00:00.000Z'
 
 export const seedCategories: Category[] = [
-  ['cat-audio', 'audio', 'Audio', 'Sonido preciso, sin cables y sin ruido.', '/products/airpods-5-1.svg'],
-  ['cat-smartphones', 'smartphones', 'Smartphones', 'El dispositivo que más usás, en su mejor versión.', '/products/iphone-17-pro-1.svg'],
-  ['cat-computacion', 'computacion', 'Computación', 'Notebooks y tablets para crear y trabajar.', '/products/macbook-air-15-1.svg'],
-  ['cat-wearables', 'wearables', 'Wearables', 'Salud, actividad y notificaciones en tu muñeca.', '/products/apple-watch-series-11-1.svg'],
-  ['cat-accesorios', 'accesorios', 'Accesorios', 'Carga, cables y protección, sin concesiones.', '/products/mono-charge-35w-1.svg'],
-  ['cat-gaming', 'gaming', 'Gaming', 'Control total, latencia mínima.', '/products/mono-pad-controller-1.svg'],
-  ['cat-hogar', 'hogar-inteligente', 'Hogar inteligente', 'Tu casa, conectada y en silencio.', '/products/mono-home-hub-1.svg'],
+  ['cat-audio', 'audio', 'Audio', 'Sonido preciso, sin cables y sin ruido.', '/products/airpods-5-1.webp'],
+  ['cat-smartphones', 'smartphones', 'Smartphones', 'El dispositivo que más usás, en su mejor versión.', '/products/iphone-17-pro-1.webp'],
+  ['cat-computacion', 'computacion', 'Computación', 'Notebooks y tablets para crear y trabajar.', '/products/macbook-air-15-1.webp'],
+  ['cat-wearables', 'wearables', 'Wearables', 'Salud, actividad y notificaciones en tu muñeca.', '/products/apple-watch-series-11-1.webp'],
+  ['cat-accesorios', 'accesorios', 'Accesorios', 'Carga, cables y protección, sin concesiones.', '/products/mono-charge-35w-1.webp'],
+  ['cat-gaming', 'gaming', 'Gaming', 'Control total, latencia mínima.', '/products/mono-pad-controller-1.webp'],
+  ['cat-hogar', 'hogar-inteligente', 'Hogar inteligente', 'Tu casa, conectada y en silencio.', '/products/mono-home-hub-1.webp'],
 ].map(([id, slug, name, description, imageUrl], index) => ({
   id,
   slug,
@@ -76,7 +76,7 @@ function buildProduct(input: SeedInput, index: number): Product {
     stock: variants.length ? variants.reduce((sum, variant) => sum + variant.stock, 0) : input.stock,
     images: [1, 2].map((n) => ({
       id: `${id}-img${n}`,
-      url: `/products/${input.slug}-${n}.svg`,
+      url: `/products/${input.slug}-${n}.webp`,
       alt: `${input.name}${n === 2 ? ' — vista alternativa' : ''}`,
       sortOrder: n - 1,
     })),
@@ -104,7 +104,7 @@ const productInputs: SeedInput[] = [
     compareAt: 529999,
     stock: 24,
     isFeatured: true,
-    animation: 'airpods-3d',
+    animation: 'float',
     shortDescription: 'Cancelación activa de ruido, audio espacial y un estuche más chico que nunca.',
     description:
       'AirPods 5 redefine lo que esperás de unos auriculares inalámbricos. El nuevo chip H3 procesa el sonido 48.000 veces por segundo para adaptar la cancelación de ruido a tu entorno y a la forma de tu oído. El estuche de carga, más compacto y liviano, entrega hasta 30 horas de reproducción y se carga con USB-C o de forma inalámbrica.',
@@ -531,7 +531,8 @@ export const seedHomepageSettings: HomepageSettings = {
     imageMobile: null,
     background: '#0a0a0b',
     productPosition: 'right',
-    animation: 'airpods-3d',
+    animation: 'sequence',
+    frames: ['/hero/airpods-frame-1.webp', '/hero/airpods-frame-2.webp', '/hero/airpods-frame-3.webp', '/hero/airpods-frame-4.webp'],
     callouts: ['Cancelación activa de ruido', 'Audio espacial', '30 h de batería', 'Chip H3'],
     showPrice: true,
   },

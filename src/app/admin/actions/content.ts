@@ -21,7 +21,8 @@ const heroSchema = z.object({
   imageMobile: url,
   background: color,
   productPosition: z.enum(['left', 'center', 'right']),
-  animation: z.enum(['airpods-3d', 'parallax', 'none']),
+  animation: z.enum(['sequence', 'parallax', 'none']),
+  frames: z.array(url.unwrap()).max(6),
   callouts: z.array(text(60)).max(4),
   showPrice: z.boolean(),
 })

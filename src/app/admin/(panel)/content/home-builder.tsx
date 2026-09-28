@@ -248,8 +248,8 @@ function HeroEditor({ hero, onChange, products }: { hero: HeroConfig; onChange: 
       <TextArea label="Subtítulo" value={hero.subtitle} rows={2} onChange={(event) => onChange({ subtitle: event.target.value })} className="sm:col-span-2" />
       <TextInput label="Texto del botón principal" value={hero.ctaLabel} onChange={(event) => onChange({ ctaLabel: event.target.value })} />
       <TextInput label="Texto del botón secundario" value={hero.secondaryLabel} onChange={(event) => onChange({ secondaryLabel: event.target.value })} hint="Vacío = sin botón secundario." />
-      <SelectInput label="Animación" value={hero.animation} onChange={(event) => onChange({ animation: event.target.value as HeroConfig['animation'] })} hint="3D usa el modelo de auriculares; si el dispositivo no soporta WebGL se muestra la imagen.">
-        <option value="airpods-3d">3D con scroll (auriculares)</option>
+      <SelectInput label="Animación" value={hero.animation} onChange={(event) => onChange({ animation: event.target.value as HeroConfig['animation'] })} hint="La secuencia recorre los cuadros de abajo al hacer scroll.">
+        <option value="sequence">Secuencia cinematográfica con scroll</option>
         <option value="parallax">Imagen con parallax</option>
         <option value="none">Imagen estática</option>
       </SelectInput>
@@ -267,6 +267,26 @@ function HeroEditor({ hero, onChange, products }: { hero: HeroConfig; onChange: 
           ]}
         />
       </div>
+      {hero.animation === 'sequence' && (
+        <div className="sm:col-span-2">
+          <p className="mb-1.5 text-[13px] font-medium text-ink-2">Cuadros de la secuencia (en orden)</p>
+          <p className="mb-3 text-[12px] text-muted">Ideal: PNG/WebP con fondo transparente, mismo encuadre. Ej.: cerrado → abierto → saliendo → primer plano.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[0, 1, 2, 3].map((index) => (
+              <ImageInput
+                key={index}
+                label={`Cuadro ${index + 1}`}
+                value={hero.frames[index] ?? null}
+                onChange={(url) => {
+                  const next = [...hero.frames]
+                  next[index] = url ?? ''
+                  onChange({ frames: next.filter(Boolean) })
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
       <ImageInput label="Imagen desktop" value={hero.imageDesktop} onChange={(imageDesktop) => onChange({ imageDesktop })} hint="Opcional. Por defecto, la imagen del producto." />
       <ImageInput label="Imagen mobile" value={hero.imageMobile} onChange={(imageMobile) => onChange({ imageMobile })} hint="Opcional. Por defecto, la de desktop." />
       <div className="sm:col-span-2">

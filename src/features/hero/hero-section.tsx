@@ -1,21 +1,18 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ProductImage } from '@/components/product-image'
 import { ArrowNudge, buttonClass } from '@/components/ui/button'
-import { usePrefersReducedMotion, useWebGLSupport } from '@/hooks/use-media'
+import { usePrefersReducedMotion } from '@/hooks/use-media'
 import { useCart } from '@/lib/cart-store'
 import { cn } from '@/lib/cn'
 import type { HeroConfig } from '@/lib/data/types'
 import { formatMoney } from '@/lib/format'
 import { discountPercent } from '@/lib/pricing'
 import { TIMELINE, segment, window01 } from './choreography'
-
-// three.js only loads when the 3D hero is actually going to render
-const AirpodsScene = dynamic(() => import('./airpods-scene'), { ssr: false })
+import { HeroSequence } from './hero-sequence'
 
 export type HeroProduct = {
   id: string
@@ -45,34 +42,11 @@ const CALLOUT_SLOTS = [
 
 export function HeroSection({ config, product, currency, darkBackground }: Props) {
   const track = useRef<HTMLElement>(null)
-  const pointer = useRef({ x: 0, y: 0 })
   const reducedMotion = usePrefersReducedMotion()
-  const webgl = useWebGLSupport()
-  const [sceneReady, setSceneReady] = useState(false)
-  const [inView, setInView] = useState(true)
-
-  const wants3d = config.animation === 'airpods-3d'
-  const use3d = wants3d && webgl === true && !reducedMotion
-  // The scroll-driven story only exists when there is motion to tell it
-  const storytelling = wants3d && !reducedMotion
+  const frames = config.frames.filter(Boolean)
+  // The scroll-driven story needs motion and at least two moments to tell it
+  const storytelling = config.animation === 'sequence' && frames.length >= 2 && !reducedMotion
   const { scrollYProgress } = useScroll({ target: track, offset: ['start start', 'end end'] })
-
-  useEffect(() => {
-    const node = track.current
-    if (!node) return
-    const observer = new IntersectionObserver(([entry]) => setInView(Boolean(entry?.isIntersecting)), { rootMargin: '100px' })
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [])
-
-  const onPointerMove = (event: React.PointerEvent) => {
-    if (event.pointerType !== 'mouse') return
-    const rect = event.currentTarget.getBoundingClientRect()
-    pointer.current = {
-      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      y: ((event.clientY - rect.top) / rect.height) * 2 - 1,
-    }
-  }
 
   const discover = () => {
     const node = track.current
@@ -82,7 +56,8 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
   }
 
   const side = config.productPosition === 'left' ? -1 : config.productPosition === 'center' ? 0 : 1
-  const posterDesktop = config.imageDesktop ?? product?.imageUrl ?? null
+  // Static fallback: the "open case" moment tells the most about the product
+  const posterDesktop = config.imageDesktop ?? frames[1] ?? frames[0] ?? product?.imageUrl ?? null
   const posterMobile = config.imageMobile ?? posterDesktop
 
   // Function-form transforms on purpose: Motion's native ScrollTimeline acceleration
@@ -93,7 +68,6 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
   const finaleOpacity = useTransform(scrollYProgress, (p) => segment(p, TIMELINE.finale[0], TIMELINE.finale[0] + 0.06))
   const finaleY = useTransform(scrollYProgress, (p) => 30 * (1 - segment(p, TIMELINE.finale[0], TIMELINE.finale[0] + 0.08)))
   const progressScale = useTransform(scrollYProgress, (p) => segment(p, 0.2, 0.9))
-  const onReady = useCallback(() => setSceneReady(true), [])
 
   // Invisible layers must not catch clicks or keyboard focus
   const [stage, setStage] = useState({ copy: true, finale: false })
@@ -112,22 +86,12 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
       className={cn('relative', darkBackground ? 'text-white' : 'text-ink')}
       style={{ background: config.background, height: storytelling ? '380svh' : '100svh' }}
     >
-      <div className="sticky top-0 h-svh overflow-hidden" onPointerMove={onPointerMove}>
+      <div className="sticky top-0 h-svh overflow-hidden">
         {/* Product layer ---------------------------------------------------- */}
         <div className="absolute inset-0">
-          {use3d && (
-            <div className={cn('absolute inset-0 transition-opacity duration-[1200ms] ease-[var(--ease-out-expo)]', sceneReady ? 'opacity-100' : 'opacity-0')}>
-              <AirpodsScene
-                active={inView}
-                progress={() => scrollYProgress.get()}
-                pointer={pointer}
-                side={side}
-                lightBackground={!darkBackground}
-                onReady={onReady}
-              />
-            </div>
-          )}
-          {(!use3d || !sceneReady) && (
+          {storytelling ? (
+            <HeroSequence frames={frames} alt={product?.name ?? config.title} progress={scrollYProgress} side={side} dark={darkBackground} />
+          ) : (
             <PosterImage
               desktop={posterDesktop}
               mobile={posterMobile}
@@ -135,8 +99,6 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
               position={config.productPosition}
               parallax={config.animation === 'parallax' && !reducedMotion}
               progress={scrollYProgress}
-              // While the 3D scene boots, the poster holds the composition; it fades once WebGL paints
-              fading={use3d}
             />
           )}
         </div>
@@ -355,7 +317,6 @@ function PosterImage({
   position,
   parallax,
   progress,
-  fading,
 }: {
   desktop: string | null
   mobile: string | null
@@ -363,7 +324,6 @@ function PosterImage({
   position: HeroConfig['productPosition']
   parallax: boolean
   progress: MotionValue<number>
-  fading: boolean
 }) {
   const scale = useTransform(progress, (p) => 1 + 0.12 * p)
   const y = useTransform(progress, (p) => `${-8 * p}%`)
@@ -378,7 +338,7 @@ function PosterImage({
       className={box}
       style={parallax ? { scale, y } : undefined}
       initial={{ opacity: 0, y: 40, scale: 0.96 }}
-      animate={{ opacity: fading ? 0.9 : 1, y: 0, scale: 1 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 1.4, ease: EASE, delay: 0.2 }}
     >
       <div className="relative hidden size-full md:block">

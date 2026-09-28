@@ -2,7 +2,7 @@
 
 # MONO store
 
-Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 · Motion · React Three Fiber · Supabase (opcional).
+Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 · Motion · Supabase (opcional).
 
 ## Decisiones de diseño (no se re-improvisan por pantalla)
 
@@ -16,7 +16,9 @@ Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router
 - Lógica de negocio pura en `src/lib/` (`pricing`, `catalog`, `orders`, `stats`). Los precios se recalculan en el servidor al comprar; nunca se confía en el carrito del navegador.
 - Auth admin: sesión propia firmada (HMAC, cookie httpOnly). `proxy.ts` hace el chequeo rápido; `requireAdmin()` revalida contra la base en cada página y acción.
 - Pagos: interfaz `PaymentProvider` (`src/lib/payments`). Transferencia, efectivo y tarjeta demo funcionan; Mercado Pago y Stripe se habilitan con sus claves.
-- Hero 3D: modelo procedural (`src/features/hero/airpods-model.tsx`), timeline puro en `choreography.ts`. three.js se carga diferido; sin WebGL o con `prefers-reduced-motion` se muestra la imagen.
+- Hero: secuencia cinematográfica de imágenes (`src/features/hero/hero-sequence.tsx`) coreografiada con el scroll; timeline puro en `choreography.ts`. Los cuadros se configuran desde el admin (Home Builder). Con `prefers-reduced-motion` se muestra una imagen fija.
+- Imágenes de producto y del hero: generadas con OpenAI `gpt-image-2.5-sunburst` (fondo transparente) y optimizadas a WebP con `scripts/optimize-renders.mjs`. Los cuadros del hero son ediciones de la misma foto de referencia para mantener consistencia. Límite de la cuenta: 5 imágenes por minuto.
+- Se descartó el modelado 3D procedural (three.js): Rodrigo prefiere fotografía generada; el bundle también quedó más liviano.
 
 ## Excepciones a las convenciones globales
 
@@ -31,5 +33,4 @@ Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router
 
 ## Pendiente
 
-- Reemplazar los renders SVG demo por fotografía/renders reales del producto.
 - Emails transaccionales (confirmación / cambio de estado): no implementados.
