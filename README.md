@@ -32,7 +32,7 @@ Sin variables de entorno funciona en **modo local**: los datos se guardan en `.d
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Base de datos real (ver `supabase/migrations`) |
 | `MERCADOPAGO_ACCESS_TOKEN`, `STRIPE_SECRET_KEY` | Activan esos medios de pago |
 
-1. Crear un proyecto en Supabase y ejecutar `supabase/migrations/0001_init.sql` (tablas, RLS, función atómica `create_order` y bucket `media`). En el primer arranque se carga el catálogo demo.
+1. Supabase ya está creado y migrado: proyecto **mono-store** (`https://tagdgwkiqnnphdmnpkqi.supabase.co`). Copiá la clave `service_role` desde Project Settings → API. En el primer arranque se carga el catálogo demo. (Para otro proyecto: ejecutar `supabase/migrations/0001_init.sql`.)
 2. En Vercel, crear un proyecto con **Root Directory = `mono-store`** y cargar las variables.
 
 > El modo local en Vercel es sólo una demo efímera (escribe en `/tmp`). Para una tienda real, usar Supabase.

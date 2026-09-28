@@ -23,8 +23,13 @@ Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router
 - Tipos de filas de Supabase escritos a mano en `supabase-repository.ts` porque todavía no hay proyecto vinculado. Reemplazar por `supabase gen types typescript` al vincularlo.
 - Rate limit en memoria (una instancia). Pasar a Redis/Upstash si se escala horizontalmente.
 
+## Supabase
+
+- Proyecto `mono-store` (ref `tagdgwkiqnnphdmnpkqi`, región sa-east-1, plan free), creado el 2026-09-28 con `0001_init.sql` aplicada.
+- Verificado contra la base real: seed automático, catálogo, checkout con `create_order` (stock y variantes), login admin, cambio de estado y edición de producto. Después se vació la base: el primer arranque real vuelve a sembrar el demo y crea el admin con `ADMIN_PASSWORD`.
+- Falta cargar `SUPABASE_SERVICE_ROLE_KEY` (sólo se ve en el dashboard → Project Settings → API).
+
 ## Pendiente
 
-- Vincular un proyecto Supabase y correr `supabase/migrations/0001_init.sql` (el SupabaseRepository compila pero no se probó contra una base real).
 - Reemplazar los renders SVG demo por fotografía/renders reales del producto.
 - Emails transaccionales (confirmación / cambio de estado): no implementados.
