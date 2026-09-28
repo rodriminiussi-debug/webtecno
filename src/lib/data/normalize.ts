@@ -6,7 +6,12 @@ import { seedHomepageSettings } from './seed'
 
 export function normalizeHero(stored: Partial<HeroConfig> & { animation?: string }): HeroConfig {
   const hero: HeroConfig = { ...seedHomepageSettings.hero, ...stored } as HeroConfig
-  if ((stored.animation as string | undefined) === 'airpods-3d') hero.animation = 'sequence'
+  if ((stored.animation as string | undefined) === 'airpods-3d') hero.animation = 'airpods'
+  // Frames from the first photographic version were replaced by the layered film
+  if (hero.frames.some((frame) => frame.startsWith('/hero/airpods-frame-'))) {
+    hero.frames = seedHomepageSettings.hero.frames
+    if (hero.animation === 'sequence') hero.animation = 'airpods'
+  }
   if (!Array.isArray(hero.frames)) hero.frames = seedHomepageSettings.hero.frames
   return hero
 }

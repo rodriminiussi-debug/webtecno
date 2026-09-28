@@ -224,10 +224,11 @@ export type SiteSettings = {
 // Homepage
 // ---------------------------------------------------------------------------
 
-export const SECTION_TYPES = ['hero', 'featured_products', 'categories', 'story', 'benefits', 'newsletter'] as const
+export const SECTION_TYPES = ['hero', 'features', 'featured_products', 'categories', 'story', 'benefits', 'newsletter'] as const
 export type SectionType = (typeof SECTION_TYPES)[number]
 
-export type HeroAnimation = 'sequence' | 'parallax' | 'none'
+// 'airpods': layered earbuds film · 'sequence': custom frames from the admin
+export type HeroAnimation = 'airpods' | 'sequence' | 'parallax' | 'none'
 export type HeroPosition = 'left' | 'center' | 'right'
 
 export type HeroConfig = {
@@ -248,10 +249,16 @@ export type HeroConfig = {
   showPrice: boolean
 }
 
+export const FEATURE_VISUALS = ['anc', 'adaptive', 'spatial', 'voice', 'siri', 'translate', 'heart', 'chip', 'battery', 'water', 'case'] as const
+export type FeatureVisual = (typeof FEATURE_VISUALS)[number]
+
+export type FeatureItem = { visual: FeatureVisual; kicker: string; title: string; body: string }
+
 export type BenefitIcon = 'shipping' | 'secure' | 'warranty' | 'support' | 'returns' | 'installments'
 
 export type SectionConfigMap = {
   hero: Record<string, never>
+  features: { eyebrow: string; productId: string | null; items: FeatureItem[] }
   featured_products: { productIds: string[]; ctaLabel: string }
   categories: { categoryIds: string[] }
   story: {

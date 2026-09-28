@@ -15,6 +15,7 @@ import { TIMELINE, segment, window01 } from './choreography'
 import { useConsultative } from '@/components/store/store-mode'
 import { WhatsAppPriceButton } from '@/components/store/whatsapp-button'
 import { HeroSequence } from './hero-sequence'
+import { AirpodsStage, FILM } from './airpods-stage'
 
 export type HeroProduct = {
   id: string
@@ -48,7 +49,8 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
   const consultative = useConsultative()
   const frames = config.frames.filter(Boolean)
   // The scroll-driven story needs motion and at least two moments to tell it
-  const storytelling = config.animation === 'sequence' && frames.length >= 2 && !reducedMotion
+  const film = config.animation === 'airpods'
+  const storytelling = !reducedMotion && (film || (config.animation === 'sequence' && frames.length >= 2))
   const { scrollYProgress } = useScroll({ target: track, offset: ['start start', 'end end'] })
 
   const discover = () => {
@@ -60,7 +62,7 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
 
   const side = config.productPosition === 'left' ? -1 : config.productPosition === 'center' ? 0 : 1
   // Static fallback: the "open case" moment tells the most about the product
-  const posterDesktop = config.imageDesktop ?? frames[1] ?? frames[0] ?? product?.imageUrl ?? null
+  const posterDesktop = config.imageDesktop ?? (film ? product?.imageUrl : frames[1] ?? frames[0]) ?? product?.imageUrl ?? null
   const posterMobile = config.imageMobile ?? posterDesktop
 
   // Function-form transforms on purpose: Motion's native ScrollTimeline acceleration
@@ -68,15 +70,17 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
   const copyOpacity = useTransform(scrollYProgress, (p) => 1 - segment(p, ...TIMELINE.copyOut))
   const copyY = useTransform(scrollYProgress, (p) => -60 * segment(p, 0, TIMELINE.copyOut[1]))
   const hintOpacity = useTransform(scrollYProgress, (p) => 1 - segment(p, 0, 0.03))
-  const finaleOpacity = useTransform(scrollYProgress, (p) => segment(p, TIMELINE.finale[0], TIMELINE.finale[0] + 0.06))
-  const finaleY = useTransform(scrollYProgress, (p) => 30 * (1 - segment(p, TIMELINE.finale[0], TIMELINE.finale[0] + 0.08)))
+  // The film ends with its own title; other modes keep the shorter timeline
+  const finaleStart = film ? FILM.finale : TIMELINE.finale[0]
+  const finaleOpacity = useTransform(scrollYProgress, (p) => segment(p, finaleStart, finaleStart + 0.04))
+  const finaleY = useTransform(scrollYProgress, (p) => 30 * (1 - segment(p, finaleStart, finaleStart + 0.05)))
   const progressScale = useTransform(scrollYProgress, (p) => segment(p, 0.2, 0.9))
 
   // Invisible layers must not catch clicks or keyboard focus
   const [stage, setStage] = useState({ copy: true, finale: false })
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     const copy = p < TIMELINE.copyOut[1] - 0.02
-    const finale = p > TIMELINE.finale[0] + 0.03
+    const finale = p > finaleStart + 0.02
     setStage((current) => (current.copy === copy && current.finale === finale ? current : { copy, finale }))
   })
   const copyHidden = storytelling && !stage.copy
@@ -87,12 +91,14 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
       data-header-theme={darkBackground ? 'dark' : 'light'}
       aria-label={config.title}
       className={cn('relative', darkBackground ? 'text-white' : 'text-ink')}
-      style={{ background: config.background, height: storytelling ? '380svh' : '100svh' }}
+      style={{ background: film && storytelling ? '#000' : config.background, height: storytelling ? (film ? '760svh' : '380svh') : '100svh' }}
     >
       <div className="sticky top-0 h-svh overflow-hidden">
         {/* Product layer ---------------------------------------------------- */}
         <div className="absolute inset-0">
-          {storytelling ? (
+          {storytelling && film ? (
+            <AirpodsStage progress={scrollYProgress} side={side} cards={config.callouts} />
+          ) : storytelling ? (
             <HeroSequence frames={frames} alt={product?.name ?? config.title} progress={scrollYProgress} side={side} dark={darkBackground} />
           ) : (
             <PosterImage
@@ -156,11 +162,11 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
         {/* Scroll-driven overlays -------------------------------------------- */}
         {storytelling && (
           <>
-            {config.callouts.slice(0, 4).map((text, index) => (
+            {!film && config.callouts.slice(0, 4).map((text, index) => (
               <Callout key={index} index={index} text={text} progress={scrollYProgress} dark={darkBackground} />
             ))}
 
-            <div className="pointer-events-none absolute right-[var(--gutter)] top-1/2 z-10 hidden -translate-y-1/2 flex-col items-center gap-3 lg:flex" aria-hidden="true">
+            <div className={cn('pointer-events-none absolute right-[var(--gutter)] top-1/2 z-10 hidden -translate-y-1/2 flex-col items-center gap-3', !film && 'lg:flex')} aria-hidden="true">
               <span className={cn('label-mono', darkBackground ? 'text-white/50' : 'text-muted')}>01</span>
               <div className={cn('relative h-32 w-px', darkBackground ? 'bg-white/15' : 'bg-line-strong')}>
                 <motion.div className={cn('absolute inset-0 origin-top', darkBackground ? 'bg-white' : 'bg-ink')} style={{ scaleY: progressScale }} />
@@ -177,7 +183,23 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
               </span>
             </motion.div>
 
-            {product && (
+            {product && film && (
+              <motion.div
+                style={{ opacity: finaleOpacity, y: finaleY }}
+                className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
+              >
+                <p className="label-mono text-accent">Los nuevos</p>
+                <p className="mt-4 text-[clamp(3.5rem,11vw,9rem)] font-semibold leading-[0.88] tracking-[-0.06em]">{product.name}</p>
+                <p className="mt-5 max-w-md text-lead text-white/70">{config.subtitle}</p>
+                <div inert={!stage.finale} className={cn('mt-9 flex flex-wrap items-center justify-center gap-3', stage.finale && 'pointer-events-auto')}>
+                  <BuyButton product={product} label={config.ctaLabel} dark={darkBackground} withPrice currency={currency} />
+                  <Link href={`/products/${product.slug}`} className={buttonClass({ variant: 'inverse-outline', size: 'lg' })}>
+                    Ver detalles
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+            {product && !film && (
               <motion.div
                 style={{ opacity: finaleOpacity, y: finaleY }}
                 className="container-mono pointer-events-none absolute inset-x-0 bottom-[max(2rem,env(safe-area-inset-bottom))] z-10 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end"

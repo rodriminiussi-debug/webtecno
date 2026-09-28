@@ -7,6 +7,7 @@ import { CategoriesIndex } from './categories-index'
 import { StorySection } from './story-section'
 import { BenefitsSection } from './benefits-section'
 import { NewsletterSection } from './newsletter-section'
+import { FeaturesSection } from './features-section'
 
 type Props = {
   homepage: { sections: AnyHomepageSection[]; settings: HomepageSettings }
@@ -48,6 +49,10 @@ export function HomeSections({ homepage, settings, products, categories }: Props
                 darkBackground={isDark(hero.background)}
               />
             )
+          }
+          case 'features': {
+            const product = section.config.productId ? byId.get(section.config.productId) : undefined
+            return <FeaturesSection key={section.id} section={section} product={product ? { name: product.name, slug: product.slug } : null} />
           }
           case 'featured_products': {
             const picked = section.config.productIds.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p))

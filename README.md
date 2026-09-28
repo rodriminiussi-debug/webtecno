@@ -5,7 +5,6 @@ E-commerce premium con dos experiencias: **tienda** para clientes y **panel `/ad
 ## Correr en local
 
 ```bash
-cd mono-store
 npm install
 npm run dev          # http://localhost:3000
 ```
@@ -32,7 +31,7 @@ Sin variables de entorno funciona en **modo local**: los datos se guardan en `.d
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Base de datos real (ver `supabase/migrations`) |
 | `MERCADOPAGO_ACCESS_TOKEN`, `STRIPE_SECRET_KEY` | Activan esos medios de pago |
 
-1. Supabase ya está creado y migrado: proyecto **mono-store** (`https://tagdgwkiqnnphdmnpkqi.supabase.co`). Copiá la clave `service_role` desde Project Settings → API. En el primer arranque se carga el catálogo demo. (Para otro proyecto: ejecutar `supabase/migrations/0001_init.sql`.)
-2. En Vercel, crear un proyecto con **Root Directory = `mono-store`** y cargar las variables.
+1. Supabase ya está creado y migrado: proyecto **mono-store** (`https://tagdgwkiqnnphdmnpkqi.supabase.co`). Copiá la clave `service_role` desde Project Settings → API. En el primer arranque se carga el catálogo demo. (Para otro proyecto: ejecutar las migraciones de `supabase/migrations/` en orden.)
+2. El proyecto de Vercel ya está vinculado a este repo (`main`, Root Directory `./`): cada push despliega. Cargar las variables en Project Settings → Environment Variables.
 
 > El modo local en Vercel es sólo una demo efímera (escribe en `/tmp`). Para una tienda real, usar Supabase.

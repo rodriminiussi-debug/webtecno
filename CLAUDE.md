@@ -16,7 +16,9 @@ Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router
 - Lógica de negocio pura en `src/lib/` (`pricing`, `catalog`, `orders`, `stats`). Los precios se recalculan en el servidor al comprar; nunca se confía en el carrito del navegador.
 - Auth admin: sesión propia firmada (HMAC, cookie httpOnly). `proxy.ts` hace el chequeo rápido; `requireAdmin()` revalida contra la base en cada página y acción.
 - Pagos: interfaz `PaymentProvider` (`src/lib/payments`). Transferencia, efectivo y tarjeta demo funcionan; Mercado Pago y Stripe se habilitan con sus claves.
-- Hero: secuencia cinematográfica de imágenes (`src/features/hero/hero-sequence.tsx`) coreografiada con el scroll; timeline puro en `choreography.ts`. Los cuadros se configuran desde el admin (Home Builder). Con `prefers-reduced-motion` se muestra una imagen fija.
+- Hero (`animation: 'airpods'`): película estilo Apple por capas (`src/features/hero/airpods-stage.tsx`, tiempos en `FILM`): el estuche emerge del negro, se abre, los auriculares suben, el estuche cae y alternan títulos con tomas macro (ANC, Siri con el brillo de Apple Intelligence, chip H2) hasta el vuelo final. Capas: `public/hero/` (estuche abierto recortado con `CASE_FRONT_CLIP`, auricular `bud.webp`). Los desplazamientos en % van en una capa `absolute inset-0` para que se midan contra el escenario, no contra el elemento. Modo alternativo `sequence` (`hero-sequence.tsx`) con cuadros propios desde el admin. Con `prefers-reduced-motion` se muestra una imagen fija.
+- Sección `features` (`src/features/home/features-section.tsx`): vista explotada del auricular (`exploded-view.tsx`, piezas en `public/parts/`, líneas azules de flujo de aire) + un panel por función con gráfico propio (`feature-visuals.tsx`). Los ítems se editan en el Home Builder.
+- Modo de venta `whatsapp` (default): sin precios ni carrito; cada producto abre wa.me con un mensaje armado desde la plantilla de Ajustes → Ventas.
 - Imágenes de producto y del hero: generadas con OpenAI `gpt-image-2.5-sunburst` (fondo transparente) y optimizadas a WebP con `scripts/optimize-renders.mjs`. Los cuadros del hero son ediciones de la misma foto de referencia para mantener consistencia. Límite de la cuenta: 5 imágenes por minuto.
 - Se descartó el modelado 3D procedural (three.js): Rodrigo prefiere fotografía generada; el bundle también quedó más liviano.
 
@@ -27,7 +29,7 @@ Tienda premium de tecnología (cliente + panel `/admin`). Next.js 16 (App Router
 
 ## Supabase
 
-- Proyecto `mono-store` (ref `tagdgwkiqnnphdmnpkqi`, región sa-east-1, plan free), creado el 2026-09-28 con `0001_init.sql` aplicada.
+- Proyecto `mono-store` (ref `tagdgwkiqnnphdmnpkqi`, región sa-east-1, plan free), creado el 2026-09-28 con las migraciones 0001–0003 aplicadas.
 - Verificado contra la base real: seed automático, catálogo, checkout con `create_order` (stock y variantes), login admin, cambio de estado y edición de producto. Después se vació la base: el primer arranque real vuelve a sembrar el demo y crea el admin con `ADMIN_PASSWORD`.
 - Falta cargar `SUPABASE_SERVICE_ROLE_KEY` (sólo se ve en el dashboard → Project Settings → API).
 

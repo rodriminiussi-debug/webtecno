@@ -12,7 +12,8 @@ import { Badge, PageHeader, Panel } from '@/components/admin/ui'
 import { ExternalIcon, GripIcon, PlusIcon, TrashIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/field'
-import type { AnyHomepageSection, BenefitIcon, HeroConfig, HomepageSection, SectionType } from '@/lib/data/types'
+import { FEATURE_VISUALS, type AnyHomepageSection, type BenefitIcon, type FeatureVisual, type HeroConfig, type HomepageSection, type SectionType } from '@/lib/data/types'
+import { FEATURE_VISUAL_LABEL } from '@/features/home/feature-visuals'
 import { cn } from '@/lib/cn'
 
 type ProductOption = { id: string; name: string; status: string; imageUrl: string | null }
@@ -20,6 +21,7 @@ type CategoryOption = { id: string; name: string }
 
 const TYPE_LABEL: Record<SectionType, string> = {
   hero: 'Hero',
+  features: 'Funciones del producto',
   featured_products: 'Productos destacados',
   categories: 'Categorías',
   story: 'Storytelling',
@@ -40,6 +42,8 @@ function newSection(type: Exclude<SectionType, 'hero'>): AnyHomepageSection {
   const id = `sec-${type}-${Date.now()}`
   const common = { id, enabled: true, sortOrder: 99 }
   switch (type) {
+    case 'features':
+      return { ...common, type, title: 'Lo nuevo.', subtitle: '', config: { eyebrow: 'Novedades', productId: null, items: [] } }
     case 'featured_products':
       return { ...common, type, title: 'Novedades', subtitle: '', config: { productIds: [], ctaLabel: 'Ver todo' } }
     case 'categories':
@@ -249,7 +253,8 @@ function HeroEditor({ hero, onChange, products }: { hero: HeroConfig; onChange: 
       <TextInput label="Texto del botón principal" value={hero.ctaLabel} onChange={(event) => onChange({ ctaLabel: event.target.value })} />
       <TextInput label="Texto del botón secundario" value={hero.secondaryLabel} onChange={(event) => onChange({ secondaryLabel: event.target.value })} hint="Vacío = sin botón secundario." />
       <SelectInput label="Animación" value={hero.animation} onChange={(event) => onChange({ animation: event.target.value as HeroConfig['animation'] })} hint="La secuencia recorre los cuadros de abajo al hacer scroll.">
-        <option value="sequence">Secuencia cinematográfica con scroll</option>
+        <option value="airpods">Película de AirPods (capas, estilo Apple)</option>
+        <option value="sequence">Secuencia de cuadros propios con scroll</option>
         <option value="parallax">Imagen con parallax</option>
         <option value="none">Imagen estática</option>
       </SelectInput>
@@ -326,6 +331,57 @@ function SectionEditor({ section, onChange, products, categories }: { section: A
     </>
   )
   switch (section.type) {
+    case 'features': {
+      const config = section.config
+      const set = (patch: Partial<typeof config>) => onChange({ config: { ...config, ...patch } } as Partial<HomepageSection<'features'>>)
+      const items = config.items
+      const move = (index: number, delta: number) => {
+        const next = [...items]
+        const [item] = next.splice(index, 1)
+        next.splice(index + delta, 0, item)
+        set({ items: next })
+      }
+      return (
+        <div className="grid gap-4">
+          <TextInput label="Etiqueta" value={config.eyebrow} onChange={(event) => set({ eyebrow: event.target.value })} />
+          {header}
+          <SelectInput label="Producto (botón de consulta al final)" value={config.productId ?? ''} onChange={(event) => set({ productId: event.target.value || null })}>
+            <option value="">Ninguno</option>
+            {products.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </SelectInput>
+          <p className="text-[12px] text-muted">La sección empieza con la vista explotada del auricular y sigue con un panel por función.</p>
+          <ul className="grid gap-3">
+            {items.map((item, index) => (
+              <li key={index} className="grid gap-2 rounded-[var(--radius-sm)] border border-line p-3">
+                <div className="flex items-center gap-2">
+                  <span className="label-mono text-muted">{String(index + 1).padStart(2, '0')}</span>
+                  <select className={adminInput} value={item.visual} aria-label="Animación" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, visual: event.target.value as FeatureVisual } : it)) })}>
+                    {FEATURE_VISUALS.map((visual) => (
+                      <option key={visual} value={visual}>
+                        {FEATURE_VISUAL_LABEL[visual]}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="button" disabled={index === 0} onClick={() => move(index, -1)} className="px-1 text-muted hover:text-ink disabled:opacity-20" aria-label="Subir">↑</button>
+                  <button type="button" disabled={index === items.length - 1} onClick={() => move(index, 1)} className="px-1 text-muted hover:text-ink disabled:opacity-20" aria-label="Bajar">↓</button>
+                  <button type="button" onClick={() => set({ items: items.filter((_, i) => i !== index) })} className="px-1 text-muted hover:text-danger" aria-label="Quitar">✕</button>
+                </div>
+                <input className={adminInput} value={item.kicker} placeholder="Nombre de la función" aria-label="Nombre de la función" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, kicker: event.target.value } : it)) })} />
+                <input className={adminInput} value={item.title} placeholder="Titular" aria-label="Titular" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, title: event.target.value } : it)) })} />
+                <textarea className={`${adminInput} h-auto py-2`} rows={2} value={item.body} placeholder="Descripción" aria-label="Descripción" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, body: event.target.value } : it)) })} />
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={() => set({ items: [...items, { visual: 'anc', kicker: '', title: '', body: '' }] })} className="inline-flex h-8 w-fit items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3 text-[12px] hover:border-ink">
+            <PlusIcon size={14} /> Agregar función
+          </button>
+        </div>
+      )
+    }
     case 'featured_products': {
       const config = section.config
       const set = (patch: Partial<typeof config>) => onChange({ config: { ...config, ...patch } } as Partial<HomepageSection<'featured_products'>>)

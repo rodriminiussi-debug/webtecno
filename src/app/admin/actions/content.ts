@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/auth/session'
 import { getRepository } from '@/lib/data'
-import type { AnyHomepageSection, HomepageSettings, Result } from '@/lib/data/types'
+import { FEATURE_VISUALS, type AnyHomepageSection, type HomepageSettings, type Result } from '@/lib/data/types'
 
 const text = (max: number) => z.string().trim().max(max)
 const url = z.string().trim().max(1000).nullable()
@@ -21,7 +21,7 @@ const heroSchema = z.object({
   imageMobile: url,
   background: color,
   productPosition: z.enum(['left', 'center', 'right']),
-  animation: z.enum(['sequence', 'parallax', 'none']),
+  animation: z.enum(['airpods', 'sequence', 'parallax', 'none']),
   frames: z.array(url.unwrap()).max(6),
   callouts: z.array(text(60)).max(4),
   showPrice: z.boolean(),
@@ -31,6 +31,15 @@ const base = { id: z.string().min(1).max(80), enabled: z.boolean(), sortOrder: z
 
 const sectionSchema = z.discriminatedUnion('type', [
   z.object({ ...base, type: z.literal('hero'), config: z.object({}).strict() }),
+  z.object({
+    ...base,
+    type: z.literal('features'),
+    config: z.object({
+      eyebrow: text(60),
+      productId: z.string().nullable(),
+      items: z.array(z.object({ visual: z.enum(FEATURE_VISUALS), kicker: text(60), title: text(80), body: text(300) })).max(12),
+    }),
+  }),
   z.object({ ...base, type: z.literal('featured_products'), config: z.object({ productIds: z.array(z.string()).max(24), ctaLabel: text(40) }) }),
   z.object({ ...base, type: z.literal('categories'), config: z.object({ categoryIds: z.array(z.string()).max(24) }) }),
   z.object({
