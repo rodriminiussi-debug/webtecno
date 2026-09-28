@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { motion, useScroll, useSpring, useTransform, type MotionValue } from 'motion/react'
 import { useRef } from 'react'
-import { usePrefersReducedMotion } from '@/hooks/use-media'
+import { useMediaQuery, usePrefersReducedMotion } from '@/hooks/use-media'
 import { easeInOutCubic, segment } from '@/features/hero/choreography'
 
 // Exploded view: the earbud comes apart into its components along a diagonal axis,
@@ -26,6 +26,8 @@ export function ExplodedView() {
   const spread = useTransform(p, (v) => (reducedMotion ? 1 : easeInOutCubic(segment(v, 0.12, 0.45)) * (1 - easeInOutCubic(segment(v, 0.8, 0.96)))))
   const budOpacity = useTransform(spread, (s) => 1 - Math.min(1, s * 2.2))
   const titleOpacity = useTransform(p, (v) => 1 - segment(v, 0.08, 0.16))
+  // Portrait stage on phones: parts spread along the taller axis
+  const wide = useMediaQuery('(min-width: 768px)')
 
   return (
     <div ref={ref} className="relative" style={{ height: reducedMotion ? 'auto' : '320svh' }}>
@@ -35,13 +37,13 @@ export function ExplodedView() {
           <p className="mt-3 text-[clamp(1.6rem,3.4vw,3rem)] font-medium tracking-[-0.03em]">Ingeniería que no se ve. Se escucha.</p>
         </motion.div>
 
-        <div className="relative aspect-[16/10] w-[min(96vw,150svh)] md:aspect-[16/9]">
+        <div className="relative aspect-[3/4] w-[min(96vw,70svh)] md:aspect-[16/9] md:w-[min(96vw,150svh)]">
           <AirFlow spread={spread} />
           <motion.div className="absolute inset-[22%]" style={{ opacity: budOpacity }}>
             <Image src="/hero/bud.webp" alt="AirPods 5" fill sizes="50vw" className="object-contain" />
           </motion.div>
           {PARTS.map((part, index) => (
-            <Part key={part.src} part={part} index={index} spread={spread} />
+            <Part key={part.src} part={part} index={index} spread={spread} wide={wide} />
           ))}
         </div>
       </div>
@@ -49,11 +51,14 @@ export function ExplodedView() {
   )
 }
 
-function Part({ part, index, spread }: { part: (typeof PARTS)[number]; index: number; spread: MotionValue<number> }) {
+function Part({ part, index, spread, wide }: { part: (typeof PARTS)[number]; index: number; spread: MotionValue<number>; wide: boolean }) {
   // Staggered: outer parts leave first, like layers peeling off
   const local = useTransform(spread, (s) => Math.min(1, Math.max(0, s * 1.25 - index * 0.04)))
-  const x = useTransform(local, (t) => `${part.x * t}%`)
-  const y = useTransform(local, (t) => `${part.y * t}%`)
+  const spreadX = wide ? part.x : part.x * 0.9
+  const spreadY = wide ? part.y : part.y * 1.25
+  const size = wide ? part.size : part.size * 0.95
+  const x = useTransform(local, (t) => `${spreadX * t}%`)
+  const y = useTransform(local, (t) => `${spreadY * t}%`)
   const rotate = useTransform(local, (t) => part.rotate * t)
   const scale = useTransform(local, (t) => 0.55 + 0.45 * t)
   const opacity = useTransform(local, (t) => Math.min(1, t * 3))
@@ -62,15 +67,15 @@ function Part({ part, index, spread }: { part: (typeof PARTS)[number]; index: nu
   // Outer layer spans the stage so the % offsets are measured against the stage
   return (
     <motion.div className="pointer-events-none absolute inset-0" style={{ x, y, opacity }}>
-      <div className="absolute" style={{ width: `${part.size}%`, height: `${part.size}%`, left: `${50 - part.size / 2}%`, top: `${50 - part.size / 2}%` }}>
+      <div className="absolute" style={{ width: `${size}%`, height: `${size * (wide ? 1 : 0.75)}%`, left: `${50 - size / 2}%`, top: `${50 - (size * (wide ? 1 : 0.75)) / 2}%` }}>
         <motion.div className="relative size-full" style={{ rotate, scale }}>
           <Image src={part.src} alt="" fill sizes="30vw" className="object-contain" />
         </motion.div>
         <motion.div
-          className={`absolute left-1/2 w-max max-w-[40vw] -translate-x-1/2 text-center ${labelBelow ? 'top-full mt-1' : 'bottom-full mb-1'}`}
+          className={`absolute left-1/2 w-max max-w-[26vw] -translate-x-1/2 text-center md:max-w-[40vw] ${labelBelow ? 'top-full mt-1' : 'bottom-full mb-1'}`}
           style={{ opacity: labelOpacity }}
         >
-          <p className="text-[clamp(0.8rem,1.1vw,1rem)] font-medium tracking-[-0.01em]">{part.label}</p>
+          <p className="text-[clamp(0.7rem,1.1vw,1rem)] font-medium leading-tight tracking-[-0.01em]">{part.label}</p>
           <p className="label-mono mt-1 hidden text-white/45 md:block">{part.detail}</p>
         </motion.div>
       </div>
