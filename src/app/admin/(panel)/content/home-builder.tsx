@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/field'
 import { FEATURE_VISUALS, type AnyHomepageSection, type BenefitIcon, type FeatureVisual, type HeroConfig, type HomepageSection, type SectionType } from '@/lib/data/types'
 import { FEATURE_VISUAL_LABEL } from '@/features/home/feature-visuals'
+import { resolveFeatureMedia } from '@/features/home/feature-media'
 import { cn } from '@/lib/cn'
 
 type ProductOption = { id: string; name: string; status: string; imageUrl: string | null }
@@ -353,7 +354,7 @@ function SectionEditor({ section, onChange, products, categories }: { section: A
               </option>
             ))}
           </SelectInput>
-          <p className="text-[12px] text-muted">La sección empieza con la vista explotada del auricular y sigue con un panel por función.</p>
+          <p className="text-[12px] text-muted">La sección empieza con las animaciones «Por dentro» y sigue con un panel por función. Cada panel muestra su imagen o video (.mp4); si lo dejás vacío, se dibuja la animación elegida.</p>
           <ul className="grid gap-3">
             {items.map((item, index) => (
               <li key={index} className="grid gap-2 rounded-[var(--radius-sm)] border border-line p-3">
@@ -373,6 +374,13 @@ function SectionEditor({ section, onChange, products, categories }: { section: A
                 <input className={adminInput} value={item.kicker} placeholder="Nombre de la función" aria-label="Nombre de la función" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, kicker: event.target.value } : it)) })} />
                 <input className={adminInput} value={item.title} placeholder="Titular" aria-label="Titular" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, title: event.target.value } : it)) })} />
                 <textarea className={`${adminInput} h-auto py-2`} rows={2} value={item.body} placeholder="Descripción" aria-label="Descripción" onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, body: event.target.value } : it)) })} />
+                <input
+                  className={adminInput}
+                  value={resolveFeatureMedia(item) ?? ''}
+                  placeholder="Imagen o video (URL). Vacío: animación dibujada"
+                  aria-label="Imagen o video"
+                  onChange={(event) => set({ items: items.map((it, i) => (i === index ? { ...it, media: event.target.value.trim() || null } : it)) })}
+                />
               </li>
             ))}
           </ul>

@@ -37,7 +37,7 @@ const sectionSchema = z.discriminatedUnion('type', [
     config: z.object({
       eyebrow: text(60),
       productId: z.string().nullable(),
-      items: z.array(z.object({ visual: z.enum(FEATURE_VISUALS), kicker: text(60), title: text(80), body: text(300) })).max(12),
+      items: z.array(z.object({ visual: z.enum(FEATURE_VISUALS), kicker: text(60), title: text(80), body: text(300), media: z.string().trim().max(300).nullable().optional() })).max(12),
     }),
   }),
   z.object({ ...base, type: z.literal('featured_products'), config: z.object({ productIds: z.array(z.string()).max(24), ctaLabel: text(40) }) }),

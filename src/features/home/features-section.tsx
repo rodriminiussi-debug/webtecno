@@ -1,24 +1,27 @@
 'use client'
 
-import { motion, useScroll, useTransform } from 'motion/react'
+import Image from 'next/image'
+import { motion, useScroll, useTransform, type MotionValue } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import type { FeatureItem, HomepageSection } from '@/lib/data/types'
 import { cn } from '@/lib/cn'
 import { usePrefersReducedMotion } from '@/hooks/use-media'
+import { AutoplayVideo } from '@/components/autoplay-video'
 import { WhatsAppPriceButton } from '@/components/store/whatsapp-button'
 import { useConsultative } from '@/components/store/store-mode'
-import { ExplodedView } from './exploded-view'
+import { InsideBento } from './inside-bento'
 import { FeatureVisualView } from './feature-visuals'
+import { isVideo, posterFor, resolveFeatureMedia } from './feature-media'
 
 /**
- * Product-page style highlights: an exploded view of the earbud, then one panel
- * per feature, each with its own scroll-reactive graphic. Dark, like the hero film.
+ * Product-page style highlights, dark like the hero film: a bento of Apple's
+ * "inside" animations, then one panel per feature with its own image or clip.
  */
 export function FeaturesSection({ section, product }: { section: HomepageSection<'features'>; product: { name: string; slug: string } | null }) {
   const consultative = useConsultative()
   return (
     <section className="bg-black text-white" data-header-theme="dark" aria-labelledby="features-title">
-      <div className="container-mono pb-10 pt-28 md:pt-40">
+      <div className="container-mono pb-14 pt-28 md:pb-20 md:pt-40">
         <p className="label-mono mb-5 text-white/50">{section.config.eyebrow}</p>
         <h2 id="features-title" className="max-w-[14ch] text-[clamp(3rem,8vw,7.5rem)] font-semibold leading-[0.9] tracking-[-0.055em]">
           {section.title}
@@ -26,9 +29,9 @@ export function FeaturesSection({ section, product }: { section: HomepageSection
         {section.subtitle && <p className="mt-6 max-w-lg text-lead text-white/65">{section.subtitle}</p>}
       </div>
 
-      <ExplodedView />
+      <InsideBento />
 
-      <div className="container-mono">
+      <div className="container-mono mt-10 md:mt-16">
         {section.config.items.map((item, index) => (
           <FeaturePanel key={`${item.visual}-${index}`} item={item} index={index} />
         ))}
@@ -49,6 +52,7 @@ function FeaturePanel({ item, index }: { item: FeatureItem; index: number }) {
   const reducedMotion = usePrefersReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const [active, setActive] = useState(false)
+  const media = resolveFeatureMedia(item)
 
   useEffect(() => {
     const node = ref.current
@@ -60,7 +64,8 @@ function FeaturePanel({ item, index }: { item: FeatureItem; index: number }) {
 
   const textOpacity = useTransform(scrollYProgress, (p) => (reducedMotion ? 1 : Math.min(1, Math.max(0, (p - 0.12) / 0.18))))
   const textY = useTransform(textOpacity, (o) => 40 * (1 - o))
-  const visualScale = useTransform(scrollYProgress, (p) => (reducedMotion ? 1 : 0.9 + 0.12 * Math.min(1, p / 0.5)))
+  const visualScale = useTransform(scrollYProgress, (p) => (reducedMotion ? 1 : 0.92 + 0.08 * Math.min(1, p / 0.5)))
+  const imageY = useTransform(scrollYProgress, (p) => (reducedMotion ? '0%' : `${(0.5 - p) * 8}%`))
   const flipped = index % 2 === 1
 
   return (
@@ -75,10 +80,39 @@ function FeaturePanel({ item, index }: { item: FeatureItem; index: number }) {
         <p className="mt-5 max-w-md text-[17px] leading-relaxed text-white/65">{item.body}</p>
       </motion.div>
       <motion.div
-        className={cn('relative aspect-square w-full md:col-span-6', flipped ? 'md:order-1 md:col-start-1' : 'md:col-start-7')}
+        className={cn('relative w-full md:col-span-6', flipped ? 'md:order-1 md:col-start-1' : 'md:col-start-7', media ? 'aspect-[4/3.4]' : 'aspect-square')}
         style={{ scale: visualScale }}
       >
-        <FeatureVisualView visual={item.visual} progress={scrollYProgress} active={active && !reducedMotion} />
+        {media ? (
+          <FeatureMedia src={media} label={item.title} y={imageY} />
+        ) : (
+          <FeatureVisualView visual={item.visual} progress={scrollYProgress} active={active && !reducedMotion} />
+        )}
+      </motion.div>
+    </div>
+  )
+}
+
+// Lifestyle shots fill the card; product shots on Apple's grey sit inside it
+function FeatureMedia({ src, label, y }: { src: string; label: string; y: MotionValue<string> }) {
+  const lifestyle = src.includes('/lifestyle')
+  if (isVideo(src)) {
+    return (
+      <div className={cn('size-full overflow-hidden rounded-[28px]', src.includes('siri') ? 'bg-black ring-1 ring-white/10' : 'bg-[#f6f5f8]')}>
+        <AutoplayVideo src={src} poster={posterFor(src)} label={label} className="size-full" />
+      </div>
+    )
+  }
+  return (
+    <div className={cn('relative size-full overflow-hidden rounded-[28px]', lifestyle ? 'bg-neutral-900' : 'bg-[#f6f5f8]')}>
+      <motion.div className="absolute inset-[-5%]" style={{ y }}>
+        <Image
+          src={src}
+          alt={label}
+          fill
+          sizes="(min-width: 768px) 50vw, 100vw"
+          className={lifestyle ? 'object-cover' : 'object-contain p-[6%] mix-blend-multiply'}
+        />
       </motion.div>
     </div>
   )

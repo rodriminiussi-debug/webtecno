@@ -35,7 +35,7 @@ function AncVisual({ progress }: VisualProps) {
           {paths}
         </svg>
       </div>
-      <Photo src="/features/feat-anc.webp" className="scale-[0.82]" />
+      <Photo src="/hero/bud.webp" className="scale-[0.82]" />
     </div>
   )
 }
@@ -185,7 +185,7 @@ function HeartVisual({ progress }: VisualProps) {
   useEffect(() => bpm.on('change', (latest) => setValue(Math.round(latest))), [bpm])
   return (
     <div className="relative size-full">
-      <Photo src="/features/feat-heart.webp" className="scale-[0.78]" />
+      <Photo src="/hero/bud.webp" className="scale-[0.78]" />
       <svg viewBox="0 0 600 120" className="absolute inset-x-0 bottom-[12%] h-auto w-full" fill="none">
         <motion.path
           d="M0 70 L120 70 L150 70 L165 30 L180 105 L195 50 L210 70 L330 70 L345 30 L360 105 L375 50 L390 70 L600 70"
@@ -211,16 +211,16 @@ function ChipVisual({ progress }: VisualProps) {
     <div className="relative size-full">
       <motion.div className="absolute inset-[18%] rounded-[30%] bg-[radial-gradient(closest-side,rgba(255,170,90,0.35),transparent)] blur-2xl" style={{ opacity: glow }} />
       <motion.div className="size-full" style={{ rotate }}>
-        <Photo src="/features/feat-chip.webp" className="scale-[0.82]" />
+        <Photo src="/hero/bud.webp" className="scale-[0.82]" />
       </motion.div>
     </div>
   )
 }
 
-/** Hours count up with scroll: 5 h per charge, 30 h with the case. */
+/** Hours count up with scroll: 5 h per charge, 22 h with the case. */
 function BatteryVisual({ progress }: VisualProps) {
   const buds = useTransform(progress, [0.1, 0.55], [0, 5])
-  const total = useTransform(progress, [0.15, 0.65], [0, 30])
+  const total = useTransform(progress, [0.15, 0.65], [0, 22])
   const [values, setValues] = useState({ buds: 0, total: 0 })
   useEffect(() => {
     const update = () => setValues({ buds: Math.round(buds.get()), total: Math.round(total.get()) })
@@ -255,7 +255,7 @@ function WaterVisual({ progress }: VisualProps) {
     <div className="relative size-full">
       <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-[clamp(6rem,16vw,14rem)] font-semibold tracking-[-0.06em] text-white/[0.06]">IP57</p>
       <motion.div className="size-full" style={{ y }}>
-        <Photo src="/features/feat-water.webp" className="scale-[0.8]" />
+        <Photo src="/products/airpods-5-1.webp" className="scale-[0.8]" />
       </motion.div>
     </div>
   )
@@ -273,7 +273,7 @@ function CaseVisual({ active }: VisualProps) {
             style={{ animation: `ping-out 2.4s ${ring * 0.8}s cubic-bezier(0.16,1,0.3,1) infinite` }}
           />
         ))}
-      <Photo src="/features/feat-case.webp" className="scale-[0.78]" />
+      <Photo src="/hero/case-closed.webp" className="scale-[0.78]" />
       <style>{`@keyframes ping-out { from { transform: translate(-50%,-50%) scale(.6); opacity: .8 } to { transform: translate(-50%,-50%) scale(2.6); opacity: 0 } }`}</style>
     </div>
   )

@@ -252,7 +252,8 @@ export type HeroConfig = {
 export const FEATURE_VISUALS = ['anc', 'adaptive', 'spatial', 'voice', 'siri', 'translate', 'heart', 'chip', 'battery', 'water', 'case'] as const
 export type FeatureVisual = (typeof FEATURE_VISUALS)[number]
 
-export type FeatureItem = { visual: FeatureVisual; kicker: string; title: string; body: string }
+/** `media`: image or .mp4 shown instead of the drawn visual. Undefined = the default for the visual, null = none. */
+export type FeatureItem = { visual: FeatureVisual; kicker: string; title: string; body: string; media?: string | null }
 
 export type BenefitIcon = 'shipping' | 'secure' | 'warranty' | 'support' | 'returns' | 'installments'
 

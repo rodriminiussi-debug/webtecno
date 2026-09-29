@@ -15,7 +15,7 @@ import { TIMELINE, segment, window01 } from './choreography'
 import { useConsultative } from '@/components/store/store-mode'
 import { WhatsAppPriceButton } from '@/components/store/whatsapp-button'
 import { HeroSequence } from './hero-sequence'
-import { AirpodsStage, FILM } from './airpods-stage'
+import { FILM, FILM_FRAMES, HeroFilm, filmFrame } from './hero-film'
 
 export type HeroProduct = {
   id: string
@@ -62,13 +62,14 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
 
   const side = config.productPosition === 'left' ? -1 : config.productPosition === 'center' ? 0 : 1
   // Static fallback: the "open case" moment tells the most about the product
-  const posterDesktop = config.imageDesktop ?? (film ? product?.imageUrl : frames[1] ?? frames[0]) ?? product?.imageUrl ?? null
+  const posterDesktop = config.imageDesktop ?? (film ? filmFrame(FILM_FRAMES - 1) : frames[1] ?? frames[0]) ?? product?.imageUrl ?? null
   const posterMobile = config.imageMobile ?? posterDesktop
 
   // Function-form transforms on purpose: Motion's native ScrollTimeline acceleration
   // mis-maps target offsets for tall sticky tracks, so these stay on the JS path.
-  const copyOpacity = useTransform(scrollYProgress, (p) => 1 - segment(p, ...TIMELINE.copyOut))
-  const copyY = useTransform(scrollYProgress, (p) => -60 * segment(p, 0, TIMELINE.copyOut[1]))
+  const copyOut: readonly [number, number] = film ? FILM.copyOut : TIMELINE.copyOut
+  const copyOpacity = useTransform(scrollYProgress, (p) => 1 - segment(p, ...copyOut))
+  const copyY = useTransform(scrollYProgress, (p) => -60 * segment(p, 0, copyOut[1]))
   const hintOpacity = useTransform(scrollYProgress, (p) => 1 - segment(p, 0, 0.03))
   // The film ends with its own title; other modes keep the shorter timeline
   const finaleStart = film ? FILM.finale : TIMELINE.finale[0]
@@ -79,7 +80,7 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
   // Invisible layers must not catch clicks or keyboard focus
   const [stage, setStage] = useState({ copy: true, finale: false })
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    const copy = p < TIMELINE.copyOut[1] - 0.02
+    const copy = p < copyOut[1] - 0.02
     const finale = p > finaleStart + 0.02
     setStage((current) => (current.copy === copy && current.finale === finale ? current : { copy, finale }))
   })
@@ -91,13 +92,13 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
       data-header-theme={darkBackground ? 'dark' : 'light'}
       aria-label={config.title}
       className={cn('relative', darkBackground ? 'text-white' : 'text-ink')}
-      style={{ background: film && storytelling ? '#000' : config.background, height: storytelling ? (film ? '760svh' : '380svh') : '100svh' }}
+      style={{ background: film && storytelling ? '#000' : config.background, height: storytelling ? (film ? '560svh' : '380svh') : '100svh' }}
     >
       <div className="sticky top-0 h-svh overflow-hidden">
         {/* Product layer ---------------------------------------------------- */}
         <div className="absolute inset-0">
           {storytelling && film ? (
-            <AirpodsStage progress={scrollYProgress} side={side} cards={config.callouts} />
+            <HeroFilm progress={scrollYProgress} side={side} />
           ) : storytelling ? (
             <HeroSequence frames={frames} alt={product?.name ?? config.title} progress={scrollYProgress} side={side} dark={darkBackground} />
           ) : (
@@ -162,8 +163,8 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
         {/* Scroll-driven overlays -------------------------------------------- */}
         {storytelling && (
           <>
-            {!film && config.callouts.slice(0, 4).map((text, index) => (
-              <Callout key={index} index={index} text={text} progress={scrollYProgress} dark={darkBackground} />
+            {config.callouts.slice(0, 4).map((text, index) => (
+              <Callout key={index} index={index} text={text} progress={scrollYProgress} dark={darkBackground} windows={film ? FILM.callouts : TIMELINE.callouts} />
             ))}
 
             <div className={cn('pointer-events-none absolute right-[var(--gutter)] top-1/2 z-10 hidden -translate-y-1/2 flex-col items-center gap-3', !film && 'lg:flex')} aria-hidden="true">
@@ -186,12 +187,12 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
             {product && film && (
               <motion.div
                 style={{ opacity: finaleOpacity, y: finaleY }}
-                className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
+                className="pointer-events-none absolute inset-x-0 bottom-[max(2.25rem,env(safe-area-inset-bottom))] z-10 flex flex-col items-center px-6 text-center"
               >
                 <p className="label-mono text-accent">Los nuevos</p>
-                <p className="mt-4 text-[clamp(3.5rem,11vw,9rem)] font-semibold leading-[0.88] tracking-[-0.06em]">{product.name}</p>
-                <p className="mt-5 max-w-md text-lead text-white/70">{config.subtitle}</p>
-                <div inert={!stage.finale} className={cn('mt-9 flex flex-wrap items-center justify-center gap-3', stage.finale && 'pointer-events-auto')}>
+                <p className="mt-3 text-[clamp(3rem,7.5vw,6.5rem)] font-semibold leading-[0.88] tracking-[-0.06em]">{product.name}</p>
+                <p className="mt-4 max-w-md text-lead text-white/70">{config.subtitle}</p>
+                <div inert={!stage.finale} className={cn('mt-7 flex flex-wrap items-center justify-center gap-3', stage.finale && 'pointer-events-auto')}>
                   <BuyButton product={product} label={config.ctaLabel} dark={darkBackground} withPrice currency={currency} />
                   <Link href={`/products/${product.slug}`} className={buttonClass({ variant: 'inverse-outline', size: 'lg' })}>
                     Ver detalles
@@ -315,8 +316,20 @@ function BuyButton({
   )
 }
 
-function Callout({ index, text, progress, dark }: { index: number; text: string; progress: MotionValue<number>; dark: boolean }) {
-  const [start, end] = TIMELINE.callouts[index] ?? [0, 0]
+function Callout({
+  index,
+  text,
+  progress,
+  dark,
+  windows,
+}: {
+  index: number
+  text: string
+  progress: MotionValue<number>
+  dark: boolean
+  windows: readonly (readonly [number, number])[]
+}) {
+  const [start, end] = windows[index] ?? [0, 0]
   const opacity = useTransform(progress, (p) => window01(p, start, end, 0.04))
   const y = useTransform(opacity, (value) => 18 * (1 - value))
   const [visible, setVisible] = useState(false)
@@ -326,7 +339,8 @@ function Callout({ index, text, progress, dark }: { index: number; text: string;
       style={{ opacity, y }}
       aria-hidden={!visible}
       className={cn(
-        'pointer-events-none absolute inset-x-[var(--gutter)] bottom-[max(2.5rem,env(safe-area-inset-bottom))] z-10 flex flex-col gap-3 md:inset-x-auto md:max-w-[19rem]',
+        // Above the floating WhatsApp button on phones
+        'pointer-events-none absolute inset-x-[var(--gutter)] bottom-[max(6.5rem,env(safe-area-inset-bottom))] z-10 flex flex-col gap-3 md:inset-x-auto md:bottom-[max(2.5rem,env(safe-area-inset-bottom))] md:max-w-[19rem]',
         CALLOUT_SLOTS[index],
       )}
     >
