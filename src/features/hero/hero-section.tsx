@@ -50,7 +50,9 @@ export function HeroSection({ config, product, currency, darkBackground }: Props
   const frames = config.frames.filter(Boolean)
   // The scroll-driven story needs motion and at least two moments to tell it
   const film = config.animation === 'airpods'
-  const storytelling = !reducedMotion && (film || (config.animation === 'sequence' && frames.length >= 2))
+  // The film is scrubbed by the visitor's own scroll, so it stays on under "reduce motion" (only its automatic
+  // effects are dropped, see HeroFilm). The frame-crossfade sequence still falls back to a still image.
+  const storytelling = film || (!reducedMotion && config.animation === 'sequence' && frames.length >= 2)
   const { scrollYProgress } = useScroll({ target: track, offset: ['start start', 'end end'] })
 
   const discover = () => {

@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useMotionValueEvent, useSpring, useTransform, type MotionValue } from 'motion/react'
 import { useCallback, useEffect, useRef } from 'react'
-import { useMediaQuery } from '@/hooks/use-media'
+import { useMediaQuery, usePrefersReducedMotion } from '@/hooks/use-media'
 import { IntelligenceGlow } from '@/components/intelligence-glow'
 import { easeInOutCubic, segment, window01 } from './choreography'
 
@@ -132,6 +132,7 @@ export function HeroFilm({ progress, side }: { progress: MotionValue<number>; si
   }, [schedule])
 
   const wide = useMediaQuery('(min-width: 768px)')
+  const reducedMotion = usePrefersReducedMotion()
   const offset = useMotionValue(0)
   useEffect(() => offset.set(wide ? side : 0), [offset, wide, side])
   const x = useTransform([p, offset], ([v, o]: number[]) => `${o * 18 * (1 - easeInOutCubic(segment(v, 0.02, 0.12)))}vw`)
@@ -149,9 +150,9 @@ export function HeroFilm({ progress, side }: { progress: MotionValue<number>; si
           className="relative aspect-square w-[min(100vw,70svh)] md:w-[min(100vw,100svh)]"
           style={{ x, y, scale }}
           // Emerges from darkness
-          initial={{ opacity: 0, filter: 'brightness(0.05)' }}
+          initial={reducedMotion ? false : { opacity: 0, filter: 'brightness(0.05)' }}
           animate={{ opacity: 1, filter: 'brightness(1)' }}
-          transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: reducedMotion ? 0 : 2.4, ease: [0.16, 1, 0.3, 1] }}
         >
           {/* Apple Intelligence colours, seen through the black of the frames */}
           <motion.div className="absolute inset-[12%]" style={{ opacity: glowOpacity }}>
