@@ -273,8 +273,12 @@ export class SupabaseRepository implements StoreRepository {
   /** First boot on an empty database loads the demo catalogue so the store is never blank. */
   private ensureSeeded(): Promise<void> {
     this.seeding ??= (async () => {
-      const { count, error } = await this.client.from('site_settings').select('id', { count: 'exact', head: true })
-      if (error) fail('ensureSeeded.check', error)
+      const { count, error, status } = await this.client.from('site_settings').select('id', { count: 'exact', head: true })
+      // HEAD responses carry no body, so the status is the only clue about what went wrong
+      if (status === 401 || status === 403) {
+        console.error(`SupabaseRepository: Supabase rejected the key (HTTP ${status}). Check SUPABASE_SERVICE_ROLE_KEY: it must be the project's service_role / secret key, pasted without quotes or spaces.`)
+      }
+      if (error) fail('ensureSeeded.check', { ...error, status })
       if ((count ?? 0) > 0) return
       console.info('SupabaseRepository: empty database, loading demo data')
       await this.client.from('site_settings').upsert({ id: 1, data: seedSettings })
